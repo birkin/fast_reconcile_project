@@ -28,6 +28,12 @@ def info( request ):
     return HttpResponse( output, content_type='application/json; charset=utf-8' )
 
 
+def reconcile_v1( request ):
+    """ Performs oclc-lookup and massaging. """
+    # log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
+    return HttpResponse( 'foo' )
+
+
 # @shib_login
 # def login( request ):
 #     """ Handles authNZ, & redirects to admin.
