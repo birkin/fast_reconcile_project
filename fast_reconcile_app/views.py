@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import datetime, json, logging, os, pprint
+
 # from fast_reconcile_app.lib.shib_auth import shib_login  # decorator
 from . import settings_app
 from django.conf import settings as project_settings
@@ -9,6 +10,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from fast_reconcile_app.lib import view_info_helper
+from fast_reconcile_app.lib.misc import jsonpify
 from fast_reconcile_app.lib.searcher import search
 
 
@@ -33,18 +35,22 @@ def reconcile_v1( request ):
     """ Performs oclc-lookup and massaging. """
     log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     ## single query
-    ( query, query_type ) = ( request.POST.get('query', None), request.POST.get('query_type', None) )
+    ( query, query_type, callback ) = ( request.POST.get('query', None), request.POST.get('query_type', None), request.POST.get('callback', None) )
     if not query:
         query = request.GET.get( 'query', None )
     if not query_type:
         query_type = request.GET.get( 'query_type', '/fast/all' )
-    log.debug( 'query, ```%s```; query_type, ```%s```' % (query, query_type) )
+    if not callback:
+        callback = request.GET.get( 'callback', 'cllbck' )
+    log.debug( 'query, ```%s```; query_type, ```%s```; callback, ```%s```' % (query, query_type, callback) )
     if not query:
         return HttpResponse( 'no query' )
     if query.startswith( '{' ):
         query = json.loads(query)['query']
     results = search(query, query_type=query_type)
-    return jsonpify({"result": results})
+    # return jsonpify( {"result": results}, callback )
+    output = jsonpify( {"result": results}, callback )
+    return HttpResponse( output, content_type='application/json; charset=utf-8' )
 
 
 
