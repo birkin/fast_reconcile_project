@@ -41,7 +41,7 @@ def reconcile_v1( request ):
     if not query_type:
         query_type = request.GET.get( 'query_type', '/fast/all' )
     if not callback:
-        callback = request.GET.get( 'callback', 'cllbck' )
+        callback = request.GET.get( 'callback', None )
     log.debug( 'query, ```%s```; query_type, ```%s```; callback, ```%s```' % (query, query_type, callback) )
     if not query:
         return HttpResponse( 'no query' )
