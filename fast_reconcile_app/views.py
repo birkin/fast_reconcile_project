@@ -1,14 +1,15 @@
 # -*- coding: utf-8 -*-
 
 import datetime, json, logging, os, pprint
-from . import settings_app
-from fast_reconcile_app.lib import view_info_helper
 # from fast_reconcile_app.lib.shib_auth import shib_login  # decorator
+from . import settings_app
 from django.conf import settings as project_settings
 from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
+from fast_reconcile_app.lib import view_info_helper
+from fast_reconcile_app.lib.searcher import search
 
 
 log = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ def info( request ):
 def reconcile_v1( request ):
     """ Performs oclc-lookup and massaging. """
     log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
+    ## single query
     ( query, query_type ) = ( request.POST.get('query', None), request.POST.get('query_type', None) )
     if not query:
         query = request.GET.get( 'query', None )
@@ -39,6 +41,12 @@ def reconcile_v1( request ):
     log.debug( 'query, ```%s```; query_type, ```%s```' % (query, query_type) )
     if not query:
         return HttpResponse( 'no query' )
+    if query.startswith( '{' ):
+        query = json.loads(query)['query']
+    results = search(query, query_type=query_type)
+    return jsonpify({"result": results})
+
+
 
 
     #Single queries have been deprecated.  This can be removed.
