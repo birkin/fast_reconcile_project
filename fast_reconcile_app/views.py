@@ -30,8 +30,53 @@ def info( request ):
 
 def reconcile_v1( request ):
     """ Performs oclc-lookup and massaging. """
-    # log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
-    return HttpResponse( 'foo' )
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
+    ( query, query_type ) = ( request.POST.get('query', None), request.POST.get('query_type', None) )
+    if not query:
+        query = request.GET.get( 'query', None )
+    if not query_type:
+        query_type = request.GET.get( 'query_type', '/fast/all' )
+    log.debug( 'query, ```%s```; query_type, ```%s```' % (query, query_type) )
+    if not query:
+        return HttpResponse( 'no query' )
+
+
+    #Single queries have been deprecated.  This can be removed.
+    #Look first for form-param requests.
+    query = request.form.get('query')
+    if query is None:
+        #Then normal get param.s
+        query = request.args.get('query')
+        query_type = request.args.get('type', '/fast/all')
+    if query:
+        # If the 'query' param starts with a "{" then it is a JSON object
+        # with the search string as the 'query' member. Otherwise,
+        # the 'query' param is the search string itself.
+        if query.startswith("{"):
+            query = json.loads(query)['query']
+        results = search(query, query_type=query_type)
+        return jsonpify({"result": results})
+    # If a 'queries' parameter is supplied then it is a dictionary
+    # of (key, query) pairs representing a batch of queries. We
+    # should return a dictionary of (key, results) pairs.
+    queries = request.form.get('queries')
+    if queries:
+        queries = json.loads(queries)
+        results = {}
+        for (key, query) in queries.items():
+            qtype = query.get('type')
+            #If no type is specified this is likely to be the initial query
+            #so lets return the service metadata so users can choose what
+            #FAST index to use.
+            if qtype is None:
+                return jsonpify(metadata)
+            data = search(query['query'], query_type=qtype)
+            results[key] = {"result": data}
+        return jsonpify(results)
+    # If neither a 'query' nor 'queries' parameter is supplied then
+    # we should return the service metadata.
+    # return jsonpify(metadata)
+    return HttpResponse( metadata )
 
 
 # @shib_login
