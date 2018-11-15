@@ -2,15 +2,19 @@
 
 import logging
 import urllib.parse
+from operator import itemgetter
 
 import requests
 from fast_reconcile_app.lib import text
+from fuzzywuzzy import fuzz
 
 
 log = logging.getLogger(__name__)
 
 
 api_base_url = 'https://fast.oclc.org/searchfast/fastsuggest'
+
+fast_uri_base = 'http://id.worldcat.org/fast/{0}'
 
 #Map the FAST query indexes to service types
 default_query = {
@@ -119,3 +123,14 @@ def search(raw_query, query_type='/fast/all'):
     sorted_out = sorted(out, key=itemgetter('score'), reverse=True)
     #Refine only will handle top three matches.
     return sorted_out[:3]
+    ## end search()
+
+
+def make_uri(fast_id):
+    """
+    Prepare a FAST url from the ID returned by the API.
+    """
+    fid = fast_id.lstrip('fst').lstrip('0')
+    fast_uri = fast_uri_base.format(fid)
+    return fast_uri
+
