@@ -32,7 +32,8 @@ def info( request ):
 
 
 def reconcile_v1( request ):
-    """ Performs oclc-lookup and massaging. """
+    """ Performs oclc-lookup and massaging.
+        Goal, to match response of original flask/python2 app as used by staff. """
     log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     ## single query
     ( query, query_type, callback ) = ( request.POST.get('query', None), request.POST.get('query_type', None), request.POST.get('callback', None) )
@@ -53,44 +54,11 @@ def reconcile_v1( request ):
     return HttpResponse( output, content_type='application/json; charset=utf-8' )
 
 
-
-
-    #Single queries have been deprecated.  This can be removed.
-    #Look first for form-param requests.
-    query = request.form.get('query')
-    if query is None:
-        #Then normal get param.s
-        query = request.args.get('query')
-        query_type = request.args.get('type', '/fast/all')
-    if query:
-        # If the 'query' param starts with a "{" then it is a JSON object
-        # with the search string as the 'query' member. Otherwise,
-        # the 'query' param is the search string itself.
-        if query.startswith("{"):
-            query = json.loads(query)['query']
-        results = search(query, query_type=query_type)
-        return jsonpify({"result": results})
-    # If a 'queries' parameter is supplied then it is a dictionary
-    # of (key, query) pairs representing a batch of queries. We
-    # should return a dictionary of (key, results) pairs.
-    queries = request.form.get('queries')
-    if queries:
-        queries = json.loads(queries)
-        results = {}
-        for (key, query) in queries.items():
-            qtype = query.get('type')
-            #If no type is specified this is likely to be the initial query
-            #so lets return the service metadata so users can choose what
-            #FAST index to use.
-            if qtype is None:
-                return jsonpify(metadata)
-            data = search(query['query'], query_type=qtype)
-            results[key] = {"result": data}
-        return jsonpify(results)
-    # If neither a 'query' nor 'queries' parameter is supplied then
-    # we should return the service metadata.
-    # return jsonpify(metadata)
-    return HttpResponse( metadata )
+def reconcile_v2( request ):
+    """ Performs oclc-lookup and massaging requested by staff.
+        Offers web-debug mode to see more of what's going on under-the-hood. """
+    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
+    return HttpResponse( 'v2 coming' )
 
 
 # @shib_login

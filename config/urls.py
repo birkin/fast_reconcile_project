@@ -17,7 +17,9 @@ urlpatterns = [
 
     url( r'^info/$', views.info, name='info_url' ),
 
-    url( r'^v1/reconcile/$', views.reconcile_v1, name='reconcile_v1_url' ),  ## the worker
+    url( r'^v1/reconcile/$', views.reconcile_v1, name='reconcile_v1_url' ),  ## the original worker
+
+    url( r'^v2/reconcile/$', views.reconcile_v2, name='reconcile_v2_url' ),
 
     # url( r'^login/$', views.login, name='login_url' ),
 
