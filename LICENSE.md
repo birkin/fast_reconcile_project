@@ -1,7 +1,6 @@
 For portions of this code that may be substantially similar to original work by Michael Stephens at <https://github.com/mikejs/reconcile-demo>:
 
-BSD-style license
-=================
+### BSD-style license ###
 
 Copyright (c) 2010, Michael Stephens.
 
@@ -18,10 +17,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ---
 ---
 
-For Brown Library portions of this code:
+For [Brown Library](https://library.brown.edu) portions of this code:
 
-The MIT License (MIT)
-=====================
+### The MIT License (MIT) ###
 
 Copyright (c) 2018 Brown University Library
 
