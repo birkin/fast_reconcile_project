@@ -8,10 +8,9 @@ def jsonpify( data, callback ):
     Helper to support JSONP
     """
     try:
+        output = json.dumps( data, sort_keys=True, indent=2 )
         if callback:
-            output = '%s(%s)' % ( callback, json.dumps(data) )
-        else:
-            output = json.dumps( data )
+            output = '%s(%s)' % ( callback, output )
         return output
     except Exception as e:
         message = 'exception jsonifying output, ```%s```' % e
