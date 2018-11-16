@@ -9,12 +9,15 @@ from django.contrib.auth import logout
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
-from fast_reconcile_app.lib import view_info_helper
+from fast_reconcile_app.lib import query_parser, view_info_helper
 from fast_reconcile_app.lib.misc import jsonpify
+from fast_reconcile_app.lib.search import Searcher
 from fast_reconcile_app.lib.searcher import search
 
 
 log = logging.getLogger(__name__)
+
+srchr = Searcher()
 
 
 def info( request ):
@@ -36,18 +39,19 @@ def reconcile_v1( request ):
         Goal, to match response of original flask/python2 app as used by staff. """
     log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     ## single query
-    ( query, query_type, callback ) = ( request.POST.get('query', None), request.POST.get('query_type', None), request.POST.get('callback', None) )
-    if not query:
-        query = request.GET.get( 'query', None )
-    if not query_type:
-        query_type = request.GET.get( 'query_type', '/fast/all' )
-    if not callback:
-        callback = request.GET.get( 'callback', None )
-    log.debug( 'query, ```%s```; query_type, ```%s```; callback, ```%s```' % (query, query_type, callback) )
+    ( query, query_type, callback ) = query_parser.parse_query( request )
+    # ( query, query_type, callback ) = ( request.POST.get('query', None), request.POST.get('query_type', None), request.POST.get('callback', None) )
+    # if not query:
+    #     query = request.GET.get( 'query', None )
+    # if not query_type:
+    #     query_type = request.GET.get( 'query_type', '/fast/all' )
+    # if not callback:
+    #     callback = request.GET.get( 'callback', None )
+    # log.debug( 'query, ```%s```; query_type, ```%s```; callback, ```%s```' % (query, query_type, callback) )
     if not query:
         return HttpResponse( 'no query' )
-    if query.startswith( '{' ):
-        query = json.loads(query)['query']
+    # if query.startswith( '{' ):
+    #     query = json.loads(query)['query']
     results = search(query, query_type=query_type)
     # return jsonpify( {"result": results}, callback )
     output = jsonpify( {"result": results}, callback )
@@ -58,7 +62,10 @@ def reconcile_v2( request ):
     """ Performs oclc-lookup and massaging requested by staff.
         Offers web-debug mode to see more of what's going on under-the-hood. """
     log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
-    return HttpResponse( 'v2 coming' )
+    ( query, query_type, callback ) = query_parser.parse_query( request )
+    results = srchr.search( raw_query=query, query_type=query_type )
+    output = jsonpify( {"result": results}, callback )
+    return HttpResponse( output, content_type='application/json; charset=utf-8' )
 
 
 # @shib_login
