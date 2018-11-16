@@ -39,19 +39,18 @@ def reconcile_v1( request ):
         Goal, to match response of original flask/python2 app as used by staff. """
     log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
     ## single query
-    ( query, query_type, callback ) = query_parser.parse_query( request )
-    # ( query, query_type, callback ) = ( request.POST.get('query', None), request.POST.get('query_type', None), request.POST.get('callback', None) )
-    # if not query:
-    #     query = request.GET.get( 'query', None )
-    # if not query_type:
-    #     query_type = request.GET.get( 'query_type', '/fast/all' )
-    # if not callback:
-    #     callback = request.GET.get( 'callback', None )
-    # log.debug( 'query, ```%s```; query_type, ```%s```; callback, ```%s```' % (query, query_type, callback) )
+    ( query, query_type, callback ) = ( request.POST.get('query', None), request.POST.get('query_type', None), request.POST.get('callback', None) )
+    if not query:
+        query = request.GET.get( 'query', None )
+    if not query_type:
+        query_type = request.GET.get( 'query_type', '/fast/all' )
+    if not callback:
+        callback = request.GET.get( 'callback', None )
+    log.debug( 'query, ```%s```; query_type, ```%s```; callback, ```%s```' % (query, query_type, callback) )
     if not query:
         return HttpResponse( 'no query' )
-    # if query.startswith( '{' ):
-    #     query = json.loads(query)['query']
+    if query.startswith( '{' ):
+        query = json.loads(query)['query']
     results = search(query, query_type=query_type)
     # return jsonpify( {"result": results}, callback )
     output = jsonpify( {"result": results}, callback )
