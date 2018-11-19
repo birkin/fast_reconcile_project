@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 def parse_query( request ):
     """ Preps and returns three data-elements.
         Called by views.reconcile_v2() """
+    log.debug( 'starting parse_query()' )
     ( query, query_type, callback ) = ( request.POST.get('query', None), request.POST.get('query_type', None), request.POST.get('callback', None) )
     if not query:
         query = request.GET.get( 'query', None )
@@ -24,14 +25,14 @@ def parse_query( request ):
 def massage_query( query ):
     """ Updates query for better fast-lookups.
         Called by parse_query() """
-    if query.startswith( '{' ):
-        query = json.loads(query)['query']
-    elif '(' in query and ')' in query:
-        substring = query[ query.find('(')+1:query.find(')') ]
-        log.debug( 'substring, `%s`' % substring )
-        wordcount = len( substring.split() )
-        if wordcount > 1:
-            query = query.replace( '(', '' )
-            query = query.replace( ')', '' )
+    if query:
+        if type( query ) == str:
+            if query.startswith( '{' ):
+                query = json.loads(query)['query']
+            elif '(' in query and ')' in query:
+                substring = query[ query.find('(')+1:query.find(')') ]
+                if len( substring.split() ) > 1:
+                    query = query.replace( '(', '' )
+                    query = query.replace( ')', '' )
     log.debug( 'massaged query, `%s`' % query )
     return query
