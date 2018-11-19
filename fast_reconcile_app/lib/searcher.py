@@ -63,6 +63,22 @@ refine_to_fast = [
 refine_to_fast.append(default_query)
 
 
+#Make a copy of the FAST mappings.
+#Minus the index for
+query_types = [{'id': item['id'], 'name': item['name']} for item in refine_to_fast]
+
+# Basic service metadata. There are a number of other documented options
+# but this is all we need for a simple service.
+# used by v1
+metadata = {
+    "name": "Fast Reconciliation Service",
+    "defaultTypes": query_types,
+    "view": {
+        "url": "{{id}}"
+    }
+}
+
+
 def search(raw_query, query_type='/fast/all'):
     """
     Hit the FAST API for names.
