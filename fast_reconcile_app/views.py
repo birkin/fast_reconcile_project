@@ -14,6 +14,7 @@ from fast_reconcile_app.lib import searcher
 from fast_reconcile_app.lib.misc import jsonpify
 from fast_reconcile_app.lib.search import Searcher
 from fast_reconcile_app.lib.searcher import search
+from django.views.decorators.csrf import csrf_exempt
 
 
 log = logging.getLogger(__name__)
@@ -35,10 +36,11 @@ def info( request ):
     return HttpResponse( output, content_type='application/json; charset=utf-8' )
 
 
+@csrf_exempt
 def reconcile_v1( request ):
     """ Performs oclc-lookup and massaging.
         Goal, to match response of original flask/python2 app as used by staff. """
-    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
+    log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
     ## single query
     ( query, query_type, callback ) = ( request.POST.get('query', None), request.POST.get('query_type', None), request.POST.get('callback', None) )
     if not query:
