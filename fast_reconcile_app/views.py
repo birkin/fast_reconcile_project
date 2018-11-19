@@ -10,6 +10,7 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from fast_reconcile_app.lib import query_parser, view_info_helper
+from fast_reconcile_app.lib import searcher
 from fast_reconcile_app.lib.misc import jsonpify
 from fast_reconcile_app.lib.search import Searcher
 from fast_reconcile_app.lib.searcher import search
@@ -43,12 +44,17 @@ def reconcile_v1( request ):
     if not query:
         query = request.GET.get( 'query', None )
     if not query_type:
-        query_type = request.GET.get( 'query_type', '/fast/all' )
+        if query:
+            query_type = request.GET.get( 'query_type', '/fast/all' )
+        else:
+            query_type = request.GET.get( 'query_type', None )
     if not callback:
         callback = request.GET.get( 'callback', None )
     log.debug( 'query, ```%s```; query_type, ```%s```; callback, ```%s```' % (query, query_type, callback) )
-    if not query:
-        return HttpResponse( 'no query' )
+    if not query and not query_type:
+        output = jsonpify( searcher.metadata, callback )
+        return HttpResponse( output, content_type='application/json; charset=utf-8' )
+        # return HttpResponse( 'no query' )
     if query.startswith( '{' ):
         query = json.loads(query)['query']
     results = search(query, query_type=query_type)
@@ -60,8 +66,16 @@ def reconcile_v1( request ):
 def reconcile_v2( request ):
     """ Performs oclc-lookup and massaging requested by staff.
         Offers web-debug mode to see more of what's going on under-the-hood. """
-    log.debug( 'request.__dict__, ```%s```' % request.__dict__ )
+    log.debug( 'request.__dict__, ```%s```' % pprint.pformat(request.__dict__) )
     ( query, query_type, callback ) = query_parser.parse_query( request )
+
+    #If no type is specified this is likely to be the initial query
+    #so lets return the service metadata so users can choose what
+    #FAST index to use.
+    if query is None and query_type is None:
+        return jsonpify( settings_app.METADATA )
+
+
     results = srchr.search( raw_query=query, query_type=query_type )
     output = jsonpify( {"result": results}, callback )
     return HttpResponse( output, content_type='application/json; charset=utf-8' )
